@@ -72,14 +72,12 @@ destroy_window :: proc() {
     glfw.Terminate()
 }
 
-begin_drawing :: proc() {
-}
 
-end_drawing :: proc() {
+swap_buffers :: proc () {
     glfw.SwapBuffers(ui.window)
-
-    glfw.PollEvents()
 }
+
+poll_events :: glfw.PollEvents
 
 clear_background :: proc(color : Color) {
     gl.ClearColor(color.r, color.g, color.b, color.a)

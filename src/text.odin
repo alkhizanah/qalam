@@ -10,15 +10,16 @@ import "freetype"
 import "raqm"
 
 font : struct {
+    rq :      ^raqm.context_t,
     library : freetype.Library,
     face :    freetype.Face,
-    rq :      ^raqm.context_t,
+    line_height : u64,
     program : u32,
 }
 
 vao, vbo, ebo : u32
 
-init_text :: proc() {
+load_text_shaders :: proc() {
     if freetype.Init_FreeType(&font.library) != 0 {
         fmt.eprintln("Could not initialize freetype")
 
@@ -52,23 +53,26 @@ load_font_face :: proc(file_path : cstring) {
 }
 
 load_font_face_from_memory :: proc(source : string) {
-    if freetype.New_Memory_Face(font.library, raw_data(source), i64(len(source)), 0, &font.face) != 0 {
+    if freetype.New_Memory_Face(font.library, raw_data(source), i64(len(source)), 0, &font.face) !=
+       0 {
         fmt.eprintln("Could not open font face")
 
         os.exit(1)
     }
 }
 
-set_font_size :: proc(font_size : f32) {
-    if freetype.Set_Char_Size(font.face, 0, i64(font_size * 64), 0, 0) != 0 {
-        fmt.eprintfln("Could not set font size to %d", font_size)
+set_line_height :: proc(pixels : u64) {
+    if freetype.Set_Char_Size(font.face, 0, i64(pixels << 6), 0, 0) != 0 {
+        fmt.eprintfln("Could not set line height to %d", pixels)
 
         os.exit(1)
     }
+
+    font.line_height = pixels
 }
 
-draw_text :: proc(x : i32, y : i32, text : string, color : Color) {
-    x, y := x, y
+draw_text :: proc(x : u64, y : u64, text : string, color : Color) {
+    x, y := i32(x), i32(y)
 
     font.rq = raqm.create()
 

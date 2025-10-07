@@ -8,28 +8,25 @@ import gl "vendor:OpenGL"
 main :: proc() {
     create_window("Qalam", 800, 600)
 
-    init_text()
-
     load_config()
+
+    load_text_shaders()
 
     load_font_face_from_memory(#load("assets/JetBrainsMonoNerdFontMono-Regular.ttf"))
 
-    set_font_size(24)
+    set_line_height(24)
+
+    // TODO: Implement a file picker instead of opening the source code file
+    edit_file(#file)
 
     for !window_should_close() {
-        begin_drawing()
-
         clear_background(theme.background)
 
-        y := 24
+        draw_editor()
 
-        for str in strings.split(#load("main.odin"), "\n") {
-            draw_text(0, i32(y), str, color_from_hex(0xFFFFFFFF))
+        swap_buffers()
 
-            y += 24
-        }
-
-        end_drawing()
+        poll_events()
     }
 
     destroy_window()

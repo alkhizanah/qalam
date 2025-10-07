@@ -1,14 +1,16 @@
 package main
 
 import "core:c"
+import "core:container/priority_queue"
+import "core:flags"
 import "core:fmt"
 import "core:os"
 import gl "vendor:OpenGL"
 import "vendor:glfw"
 
 ui : struct {
-    window :        glfw.WindowHandle,
     width, height : c.int,
+    window :        glfw.WindowHandle,
 }
 
 Color :: distinct [4]f32
@@ -24,6 +26,8 @@ color_from_hex :: proc(hex : u32) -> Color {
 
 on_resize :: proc "c" (window : glfw.WindowHandle, width, height : c.int) {
     ui.width, ui.height = width, height
+
+    gl.Viewport(0, 0, ui.width, ui.height)
 }
 
 create_window :: proc(title : cstring, desired_width, desired_height : c.int) {
@@ -33,8 +37,8 @@ create_window :: proc(title : cstring, desired_width, desired_height : c.int) {
         os.exit(1)
     }
 
-    glfw.WindowHint(glfw.CONTEXT_VERSION_MAJOR, 4)
-    glfw.WindowHint(glfw.CONTEXT_VERSION_MINOR, 1)
+    glfw.WindowHint(glfw.CONTEXT_VERSION_MAJOR, 3)
+    glfw.WindowHint(glfw.CONTEXT_VERSION_MINOR, 3)
     glfw.WindowHint(glfw.OPENGL_FORWARD_COMPAT, true)
     glfw.WindowHint(glfw.OPENGL_PROFILE, glfw.OPENGL_CORE_PROFILE)
 
@@ -54,8 +58,9 @@ create_window :: proc(title : cstring, desired_width, desired_height : c.int) {
 
     glfw.SetFramebufferSizeCallback(ui.window, on_resize)
 
-    gl.load_up_to(4, 6, glfw.gl_set_proc_address)
+    gl.load_up_to(3, 3, glfw.gl_set_proc_address)
 }
+
 
 window_should_close :: proc() -> b32 {
     return glfw.WindowShouldClose(ui.window)
@@ -68,12 +73,9 @@ destroy_window :: proc() {
 }
 
 begin_drawing :: proc() {
-    gl.Viewport(0, 0, ui.width, ui.height)
 }
 
 end_drawing :: proc() {
-    gl.Clear(gl.COLOR_BUFFER_BIT)
-
     glfw.SwapBuffers(ui.window)
 
     glfw.PollEvents()
@@ -81,5 +83,19 @@ end_drawing :: proc() {
 
 clear_background :: proc(color : Color) {
     gl.ClearColor(color.r, color.g, color.b, color.a)
+    gl.Clear(gl.COLOR_BUFFER_BIT)
+}
+
+normalize_x :: proc(x : i32) -> f32 {
+    x := f32(x) / f32(ui.width)
+    x *= 2
+    x -= 1
+    return x
+}
+
+normalize_y :: proc(y : i32) -> f32 {
+    y := f32(y) / f32(ui.height)
+    y *= 2
+    return 1 - y
 }
 

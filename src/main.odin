@@ -26,4 +26,3 @@ main :: proc() {
 
     destroy_window()
 }
-

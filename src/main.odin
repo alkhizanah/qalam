@@ -1,10 +1,5 @@
 package main
 
-import "core:fmt"
-import "core:os"
-import "core:strings"
-import gl "vendor:OpenGL"
-
 main :: proc() {
     create_window("Qalam", 800, 600)
 

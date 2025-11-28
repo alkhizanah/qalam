@@ -1,8 +1,6 @@
 package main
 
 import "core:c"
-import "core:container/priority_queue"
-import "core:flags"
 import "core:fmt"
 import "core:os"
 import gl "vendor:OpenGL"

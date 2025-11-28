@@ -1,6 +1,5 @@
 package freetype
 
-import "base:intrinsics"
 import "base:runtime"
 import cffi "core:c"
 

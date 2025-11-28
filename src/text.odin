@@ -1,20 +1,17 @@
 package main
 
 import "core:c"
-import "core:container/priority_queue"
 import "core:fmt"
 import "core:os"
 import gl "vendor:OpenGL"
 
 import "freetype"
-import "raqm"
 
 font : struct {
-    rq :      ^raqm.context_t,
-    library : freetype.Library,
-    face :    freetype.Face,
+    library :     freetype.Library,
+    face :        freetype.Face,
     line_height : u64,
-    program : u32,
+    program :     u32,
 }
 
 vao, vbo, ebo : u32
@@ -74,60 +71,18 @@ set_line_height :: proc(pixels : u64) {
 draw_text :: proc(x : u64, y : u64, text : string, color : Color) {
     x, y := i32(x), i32(y)
 
-    font.rq = raqm.create()
-
-    if font.rq == nil {
-        fmt.println("Could not initialize libraqm")
-    }
-
-    defer raqm.destroy(font.rq)
-
-    if !raqm.set_text_utf8(font.rq, raw_data(text), len(text)) {
-        fmt.eprintfln("Could not set libraqm's layout text to '%s'", text)
-
-        os.exit(1)
-    }
-
-    if !raqm.set_freetype_face(font.rq, font.face) {
-        fmt.eprintln("Could not set libraqm's layout font face")
-
-        os.exit(1)
-    }
-
-    if !raqm.set_par_direction(font.rq, .DIRECTION_DEFAULT) {
-        fmt.eprintln("Could not set libraqm's layout direction to 'default'")
-
-        os.exit(1)
-    }
-
-    if !raqm.set_language(font.rq, raw_data(string("en")), 0, 2) {
-        fmt.eprintln("Could not set libraqm's layout language to 'en'")
-
-        os.exit(1)
-    }
-
-    if !raqm.layout(font.rq) {
-        fmt.eprintfln("Could not layout the text '%s'", text)
-
-        os.exit(1)
-    }
-
-    glyphs_len : c.size_t
-    glyphs_ptr := raqm.get_glyphs(font.rq, &glyphs_len)
-    glyphs := glyphs_ptr[:glyphs_len]
-
     gl.UseProgram(font.program)
 
     gl.PixelStorei(gl.UNPACK_ALIGNMENT, 1)
 
-    for glyph in glyphs {
-        if freetype.Load_Glyph(glyph.ftface, glyph.index, 0) != 0 {
+    for character in text {
+        if freetype.Load_Char(font.face, u64(character), 0) != 0 {
             fmt.eprintln("Could not load a glyph")
 
             os.exit(1)
         }
 
-        glyph_slot := glyph.ftface.glyph
+        glyph_slot := font.face.glyph
 
         if freetype.Render_Glyph(glyph_slot, .NORMAL) != 0 {
             fmt.eprintln("Could not render a glyph")
@@ -135,13 +90,11 @@ draw_text :: proc(x : u64, y : u64, text : string, color : Color) {
             os.exit(1)
         }
 
-        x_advance := glyph.x_advance >> 6
-        y_advance := glyph.y_advance >> 6
-        x_offset := glyph.x_offset >> 6
-        y_offset := glyph.y_offset >> 6
+        x_advance := glyph_slot.advance.x >> 6
+        y_advance := glyph_slot.advance.x >> 6
 
-        x0 := x + x_offset + glyph_slot.bitmap_left
-        y0 := y + y_offset - glyph_slot.bitmap_top
+        x0 := x + glyph_slot.bitmap_left
+        y0 := y - glyph_slot.bitmap_top
         w := i32(glyph_slot.bitmap.width)
         h := i32(glyph_slot.bitmap.rows)
 
@@ -238,11 +191,10 @@ draw_text :: proc(x : u64, y : u64, text : string, color : Color) {
 
         gl.DrawElements(gl.TRIANGLES, i32(len(indices)), gl.UNSIGNED_INT, nil)
 
-        x += x_advance
+        x += i32(x_advance)
 
         if x >= ui.width {
             break
         }
     }
 }
-

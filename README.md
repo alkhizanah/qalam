@@ -2,8 +2,6 @@
 
 We (at Al Khizanah organization) mostly use Neovim for writing our software, however we wanted to make our own text editor to address our specific needs, with an exception that we use the same modal system implemented in Vi-like editors.
 
-This is a GUI application, written in the Odin programming language, using the official GLFW and OpenGL bindings, since GUI enables much more customization and extensibility, this is what we chose to implement the text editor in.
-
 We plan to support many features out of the box, like:
 
 1. File Manager

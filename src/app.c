@@ -3,12 +3,23 @@
 #include <string.h>
 
 #include "app.h"
+#include "platform.h"
 
 App app_init(size_t width, size_t height) {
     Color *framebuffer = malloc(width * height * sizeof(Color));
 
     if (framebuffer == NULL) {
         fprintf(stderr, "error: out of memory\n");
+        exit(1);
+    }
+
+    if (!platform_set_font("monospace")) {
+        fprintf(stderr, "error: could not set font to monospace\n");
+        exit(1);
+    }
+
+    if (!platform_set_font_size(40)) {
+        fprintf(stderr, "error: could not set font size to 40\n");
         exit(1);
     }
 
@@ -33,5 +44,8 @@ void app_resize(App *app, size_t new_width, size_t new_height) {
 }
 
 void app_update(App *app) {
-    memset(app->framebuffer, 0, app->width * app->height);
+    memset(app->framebuffer, 0, app->width * app->height * sizeof(Color));
+
+    platform_draw_text(app, "Hello, World!", (Color){255, 0, 0},
+                       0, 40);
 }

@@ -45,7 +45,7 @@ int main(int argc, char **argv) {
 #ifdef __linux
     Nob_Cmd pkg_config = {0};
 
-    nob_cmd_append(&pkg_config, "pkg-config", "--cflags", "--libs", "x11");
+    nob_cmd_append(&pkg_config, "pkg-config", "--cflags", "--libs", "x11", "freetype2", "fontconfig");
 
     pipe_output(&pkg_config, &compile);
 

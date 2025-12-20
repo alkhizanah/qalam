@@ -14,10 +14,10 @@ typedef struct {
     Color *framebuffer;
     size_t width;
     size_t height;
-} Loop;
+} App;
 
-Loop loop_init(size_t width, size_t height);
+App app_init(size_t width, size_t height);
 
-void loop_resize(Loop *, size_t new_width, size_t new_height);
+void app_resize(App *, size_t new_width, size_t new_height);
 
-void loop_update(Loop *);
+void app_update(App *);

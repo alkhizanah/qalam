@@ -6,7 +6,7 @@
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 
-#include "loop.h"
+#include "app.h"
 
 int main() {
     Display *display = XOpenDisplay(NULL);
@@ -46,13 +46,13 @@ int main() {
 
     XGetWindowAttributes(display, window, &wa);
 
-    Loop loop = loop_init(wa.width, wa.height);
+    App app = app_init(wa.width, wa.height);
 
-    uint32_t *backbuffer = malloc(loop.width * loop.height * sizeof(uint32_t));
+    uint32_t *backbuffer = malloc(app.width * app.height * sizeof(uint32_t));
 
     XImage *image = XCreateImage(display, wa.visual, wa.depth, ZPixmap, 0,
-                                 (char *)backbuffer, loop.width, loop.height,
-                                 sizeof(Color) * 8, loop.width * sizeof(Color));
+                                 (char *)backbuffer, app.width, app.height,
+                                 sizeof(Color) * 8, app.width * sizeof(Color));
 
     GC gc = XCreateGC(display, window, 0, NULL);
 
@@ -77,35 +77,35 @@ int main() {
 
                 break;
             case ConfigureNotify:
-                if (event.xconfigure.width != (int)loop.width ||
-                    event.xconfigure.height != (int)loop.height) {
-                    loop_resize(&loop, event.xconfigure.width,
+                if (event.xconfigure.width != (int)app.width ||
+                    event.xconfigure.height != (int)app.height) {
+                    app_resize(&app, event.xconfigure.width,
                                 event.xconfigure.height);
 
-                    backbuffer = realloc(backbuffer, loop.width * loop.height *
+                    backbuffer = realloc(backbuffer, app.width * app.height *
                                                          sizeof(uint32_t));
 
                     XFree(image);
 
                     image = XCreateImage(display, wa.visual, wa.depth, ZPixmap,
-                                         0, (char *)backbuffer, loop.width,
-                                         loop.height, sizeof(Color) * 8,
-                                         loop.width * sizeof(Color));
+                                         0, (char *)backbuffer, app.width,
+                                         app.height, sizeof(Color) * 8,
+                                         app.width * sizeof(Color));
                 }
 
                 break;
             }
         }
 
-        loop_update(&loop);
+        app_update(&app);
 
-        for (size_t i = 0; i < loop.width * loop.height; i++) {
-            const Color color = loop.framebuffer[i];
+        for (size_t i = 0; i < app.width * app.height; i++) {
+            const Color color = app.framebuffer[i];
 
             backbuffer[i] = color.r << 16 | color.g << 8 | color.b;
         }
 
-        XPutImage(display, window, gc, image, 0, 0, 0, 0, loop.width,
-                  loop.height);
+        XPutImage(display, window, gc, image, 0, 0, 0, 0, app.width,
+                  app.height);
     }
 }

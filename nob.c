@@ -16,9 +16,18 @@ void pipe_output(Nob_Cmd *src, Nob_Cmd *dst) {
 
     Nob_String_View sv = nob_sb_to_sv(sb);
 
-    for (Nob_String_View svp = nob_sv_chop_by_delim(&sv, ' '); svp.count > 0;
-         svp = nob_sv_chop_by_delim(&sv, ' ')) {
+    Nob_String_View svp = nob_sv_chop_by_delim(&sv, ' ');
+
+    if (svp.count == 0) {
+        nob_cmd_append(dst, nob_temp_sv_to_cstr(sv));
+
+        return;
+    }
+
+    while (svp.count) {
         nob_cmd_append(dst, nob_temp_sv_to_cstr(svp));
+
+        svp = nob_sv_chop_by_delim(&sv, ' ');
     }
 }
 
@@ -56,7 +65,7 @@ int main(int argc, char **argv) {
         nob_write_entire_file(".ccls", sb.items, sb.count);
     } else {
         nob_cc_output(&compile, "qalam");
-        nob_cc_inputs(&compile, "src/loop.c", "src/platform.c");
+        nob_cc_inputs(&compile, "src/app.c", "src/platform.c");
 
         nob_cmd_run(&compile);
 

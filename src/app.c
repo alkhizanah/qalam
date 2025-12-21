@@ -3,6 +3,7 @@
 #include <string.h>
 
 #include "app.h"
+#include "gfx.h"
 #include "platform.h"
 
 App app_init(size_t width, size_t height) {
@@ -46,6 +47,9 @@ void app_resize(App *app, size_t new_width, size_t new_height) {
 void app_update(App *app) {
     memset(app->framebuffer, 0, app->width * app->height * sizeof(Color));
 
+    gfx_draw_rectangle(app, 0, 0, 40 * 8, 50, (Color){0, 0, 255});
+
     platform_draw_text(app, "Hello, World!", (Color){255, 0, 0},
-                       0, 40);
+                       10, 40);
+
 }

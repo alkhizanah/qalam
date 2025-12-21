@@ -65,7 +65,7 @@ int main(int argc, char **argv) {
         nob_write_entire_file(".ccls", sb.items, sb.count);
     } else {
         nob_cc_output(&compile, "qalam");
-        nob_cc_inputs(&compile, "src/app.c", "src/platform.c");
+        nob_cc_inputs(&compile, "src/app.c", "src/gfx.c", "src/platform.c");
 
         nob_cmd_run(&compile);
 

@@ -34,7 +34,18 @@ void pipe_output(Nob_Cmd *src, Nob_Cmd *dst) {
 int main(int argc, char **argv) {
     NOB_GO_REBUILD_URSELF(argc, argv);
 
-    bool ccls = argc == 2 && strcmp(argv[1], "ccls") == 0;
+    bool ccls = false;
+    bool wayland = false;
+
+    for (int i = 0; i < argc; i++) {
+        const char *arg = argv[i];
+
+        if (strcmp(arg, "ccls") == 0) {
+            ccls = true;
+        } else if (strcmp(arg, "wayland") == 0) {
+            wayland = true;
+        }
+    }
 
     Nob_Cmd compile = {0};
 
@@ -45,7 +56,17 @@ int main(int argc, char **argv) {
 #ifdef __linux
     Nob_Cmd pkg_config = {0};
 
-    nob_cmd_append(&pkg_config, "pkg-config", "--cflags", "--libs", "x11", "freetype2", "fontconfig");
+    nob_cmd_append(&pkg_config, "pkg-config", "--cflags", "--libs");
+
+    nob_cmd_append(&pkg_config, "freetype2", "fontconfig");
+
+    if (wayland) {
+        nob_cmd_append(&pkg_config, "wayland-client");
+        nob_cmd_append(&compile, "-DPLATFORM_WAYLAND");
+    } else {
+        nob_cmd_append(&pkg_config, "x11");
+        nob_cmd_append(&compile, "-DPLATFORM_X11");
+    }
 
     pipe_output(&pkg_config, &compile);
 
@@ -66,6 +87,11 @@ int main(int argc, char **argv) {
     } else {
         nob_cc_output(&compile, "qalam");
         nob_cc_inputs(&compile, "src/app.c", "src/gfx.c", "src/platform.c");
+
+        if (wayland) {
+            nob_cc_inputs(&compile, "src/wayland-protocols/xdg-shell-protocol.c");
+            nob_cmd_append(&compile, "-lrt");
+        }
 
         nob_cmd_run(&compile);
 

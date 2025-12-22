@@ -270,7 +270,8 @@ int platform_main_loop(void) {
 
     wl_callback_add_listener(cb, &wl_surface_frame_listener, NULL);
 
-    app_init(0, 0);
+    app = app_init(0, 0, "monospace", 24, (Color){0x1a, 0x1b, 0x26},
+             (Color){0xa9, 0xb1, 0xd6});
 
     while (wl_display_dispatch(wl_display) && window_should_close != true)
         ;

@@ -89,7 +89,8 @@ int main(int argc, char **argv) {
         nob_cc_inputs(&compile, "src/app.c", "src/gfx.c", "src/platform.c");
 
         if (wayland) {
-            nob_cc_inputs(&compile, "src/wayland-protocols/xdg-shell-protocol.c");
+            nob_cc_inputs(&compile,
+                          "src/wayland-protocols/xdg-shell-protocol.c");
             nob_cmd_append(&compile, "-lrt");
         }
 

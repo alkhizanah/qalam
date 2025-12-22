@@ -1,8 +1,8 @@
-#include <stdio.h>
 #include <malloc.h>
-#include <stdint.h>
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdint.h>
+#include <stdio.h>
 
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
@@ -47,7 +47,8 @@ int platform_main_loop(void) {
 
     XGetWindowAttributes(display, window, &wa);
 
-    App app = app_init(wa.width, wa.height);
+    App app = app_init(wa.width, wa.height, "monospace", 24,
+                       (Color){0x1a, 0x1b, 0x26}, (Color){0xa9, 0xb1, 0xd6});
 
     uint32_t *backbuffer = malloc(app.width * app.height * sizeof(uint32_t));
 

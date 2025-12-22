@@ -14,9 +14,14 @@ typedef struct {
     Color *framebuffer;
     size_t width;
     size_t height;
+    const char *font_name;
+    size_t text_size;
+    Color background;
+    Color foreground;
 } App;
 
-App app_init(size_t width, size_t height);
+App app_init(size_t width, size_t height, const char *font_name,
+             size_t text_size, Color background, Color foreground);
 
 void app_resize(App *, size_t new_width, size_t new_height);
 

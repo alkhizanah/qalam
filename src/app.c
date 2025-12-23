@@ -26,9 +26,12 @@ App app_init(size_t width, size_t height, const char *font_name,
     }
 
     return (App){
-        .framebuffer = framebuffer,
-        .width = width,
-        .height = height,
+        .framebuffer =
+            {
+                .pixels = framebuffer,
+                .width = width,
+                .height = height,
+            },
         .font_name = font_name,
         .text_size = text_size,
         .background = background,
@@ -37,21 +40,23 @@ App app_init(size_t width, size_t height, const char *font_name,
 }
 
 void app_resize(App *app, size_t new_width, size_t new_height) {
-    app->framebuffer =
-        realloc(app->framebuffer, new_width * new_height * sizeof(Color));
+    app->framebuffer.pixels = realloc(app->framebuffer.pixels,
+                                      new_width * new_height * sizeof(Color));
 
-    if (app->framebuffer == NULL) {
+    if (app->framebuffer.pixels == NULL) {
         fprintf(stderr, "error: out of memory\n");
         exit(1);
     }
 
-    app->width = new_width;
-    app->height = new_height;
+    app->framebuffer.width = new_width;
+    app->framebuffer.height = new_height;
 }
 
 void app_update(App *app) {
-    gfx_draw_rectangle(app, 0, 0, app->width, app->height, app->background);
+    gfx_draw_rectangle(app->framebuffer, 0, 0, app->framebuffer.width,
+                       app->framebuffer.height, app->background);
 
-    platform_draw_text(app, "Hello, World!", app->foreground, app->width / 2 - app->text_size*4,
-                       app->height / 2);
+    platform_draw_text(app->framebuffer, "Hello, World!", app->foreground,
+                       app->framebuffer.width / 2 - app->text_size * 4,
+                       app->framebuffer.height / 2);
 }

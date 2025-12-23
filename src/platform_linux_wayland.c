@@ -94,9 +94,9 @@ static const struct wl_buffer_listener wl_buffer_listener = {
 };
 
 static struct wl_buffer *platform_copy_frame(void) {
-    int stride = app.width * 4;
+    int stride = app.framebuffer.width * 4;
 
-    int size = stride * app.height;
+    int size = stride * app.framebuffer.height;
 
     int fd = allocate_shm_file(size);
 
@@ -116,7 +116,7 @@ static struct wl_buffer *platform_copy_frame(void) {
     struct wl_shm_pool *pool = wl_shm_create_pool(wl_shm, fd, size);
 
     struct wl_buffer *buffer = wl_shm_pool_create_buffer(
-        pool, 0, app.width, app.height, stride, WL_SHM_FORMAT_XRGB8888);
+        pool, 0, app.framebuffer.width, app.framebuffer.height, stride, WL_SHM_FORMAT_XRGB8888);
 
     wl_shm_pool_destroy(pool);
 
@@ -124,8 +124,9 @@ static struct wl_buffer *platform_copy_frame(void) {
 
     app_update(&app);
 
-    for (size_t i = 0; i < app.width * app.height; i++) {
-        const Color color = app.framebuffer[i];
+    for (size_t i = 0; i < app.framebuffer.width * app.framebuffer.height; i++) {
+        const Color color = app.framebuffer.pixels[i];
+
 
         backbuffer[i] = color.r << 16 | color.g << 8 | color.b;
     }

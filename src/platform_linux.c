@@ -71,7 +71,7 @@ bool platform_set_font_size(size_t font_size) {
     return FT_Set_Pixel_Sizes(font_face, 0, font_size) == 0;
 }
 
-bool platform_draw_text(App *app, const char *text, Color fg, size_t x,
+bool platform_draw_text(ImageView image, const char *text, Color fg, size_t x,
                         size_t y) {
     while (*text != '\0') {
         if (FT_Load_Char(font_face, *text++, FT_LOAD_RENDER) != 0) {
@@ -88,9 +88,9 @@ bool platform_draw_text(App *app, const char *text, Color fg, size_t x,
                 size_t fx = x + gx + glyph->bitmap_left;
                 size_t fy = y + gy - glyph->bitmap_top;
 
-                if ((0 < fx && fx < app->width) &&
-                    (0 < fy && fy < app->height)) {
-                    Color *bg = &app->framebuffer[fx + fy * app->width];
+                if ((0 < fx && fx < image.width) &&
+                    (0 < fy && fy < image.height)) {
+                    Color *bg = image.pixels + fx + fy * image.width;
 
                     Color blend = {
                         .r = (fg.r * alpha + bg->r * (255 - alpha)) / 255,

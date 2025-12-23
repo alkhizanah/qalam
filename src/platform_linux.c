@@ -109,6 +109,27 @@ bool platform_draw_text(ImageView image, const char *text, Color fg, size_t x,
     return true;
 }
 
+bool platform_measure_text(const char *text, size_t *width, size_t *height) {
+    *width = 0;
+    *height = 0;
+
+    while (*text != '\0') {
+        if (FT_Load_Char(font_face, *text++, FT_LOAD_NO_BITMAP) != 0) {
+            return false;
+        }
+
+        *width += font_face->glyph->advance.x >> 6;
+
+        size_t glyph_height = font_face->glyph->metrics.height >> 6;
+
+        if (glyph_height > *height) {
+            *height = glyph_height;
+        }
+    }
+
+    return true;
+}
+
 int main() {
     if (FT_Init_FreeType(&freetype) != 0) {
         fprintf(stderr, "error: failed to initialize freetype\n");

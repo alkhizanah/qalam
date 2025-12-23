@@ -56,7 +56,13 @@ void app_update(App *app) {
     gfx_draw_rectangle(app->framebuffer, 0, 0, app->framebuffer.width,
                        app->framebuffer.height, app->background);
 
-    platform_draw_text(app->framebuffer, "Hello, World!", app->foreground,
-                       app->framebuffer.width / 2 - app->font_size * 4,
+    const char *text = "Hello, World!";
+
+    size_t text_width, text_height;
+
+    platform_measure_text(text, &text_width, &text_height);
+
+    platform_draw_text(app->framebuffer, text, app->foreground,
+                       app->framebuffer.width / 2 - text_width / 2,
                        app->framebuffer.height / 2);
 }

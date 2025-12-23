@@ -94,9 +94,9 @@ int main(int argc, char **argv) {
             nob_cmd_append(&compile, "-lrt");
         }
 
-        nob_cmd_run(&compile);
+        if (!nob_cmd_run(&compile)) return 1;
 
         nob_cmd_append(&compile, "./qalam");
-        nob_cmd_run(&compile);
+        if (!nob_cmd_run(&compile)) return 1;
     }
 }

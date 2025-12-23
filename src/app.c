@@ -7,7 +7,7 @@
 #include "platform.h"
 
 App app_init(size_t width, size_t height, const char *font_family,
-             size_t text_size, Color background, Color foreground) {
+             size_t font_size, Color background, Color foreground) {
     Color *framebuffer = malloc(width * height * sizeof(Color));
 
     if (framebuffer == NULL) {
@@ -20,8 +20,8 @@ App app_init(size_t width, size_t height, const char *font_family,
         exit(1);
     }
 
-    if (!platform_set_font_size(text_size)) {
-        fprintf(stderr, "error: could not set font size to %zu\n", text_size);
+    if (!platform_set_font_size(font_size)) {
+        fprintf(stderr, "error: could not set font size to %zu\n", font_size);
         exit(1);
     }
 
@@ -33,7 +33,7 @@ App app_init(size_t width, size_t height, const char *font_family,
                 .height = height,
             },
         .font_family = font_family,
-        .text_size = text_size,
+        .font_size = font_size,
         .background = background,
         .foreground = foreground,
     };
@@ -57,6 +57,6 @@ void app_update(App *app) {
                        app->framebuffer.height, app->background);
 
     platform_draw_text(app->framebuffer, "Hello, World!", app->foreground,
-                       app->framebuffer.width / 2 - app->text_size * 4,
+                       app->framebuffer.width / 2 - app->font_size * 4,
                        app->framebuffer.height / 2);
 }

@@ -25,8 +25,8 @@ static FT_Library freetype;
 
 static FT_Face font_face;
 
-bool platform_set_font(const char *font_name) {
-    FcPattern *font_pattern = FcNameParse((const FcChar8 *)font_name);
+bool platform_set_font(const char *font_family) {
+    FcPattern *font_pattern = FcNameParse((const FcChar8 *)font_family);
 
     if (font_pattern == NULL) {
         return false;

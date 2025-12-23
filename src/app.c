@@ -6,7 +6,7 @@
 #include "gfx.h"
 #include "platform.h"
 
-App app_init(size_t width, size_t height, const char *font_name,
+App app_init(size_t width, size_t height, const char *font_family,
              size_t text_size, Color background, Color foreground) {
     Color *framebuffer = malloc(width * height * sizeof(Color));
 
@@ -15,8 +15,8 @@ App app_init(size_t width, size_t height, const char *font_name,
         exit(1);
     }
 
-    if (!platform_set_font(font_name)) {
-        fprintf(stderr, "error: could not set font to %s\n", font_name);
+    if (!platform_set_font(font_family)) {
+        fprintf(stderr, "error: could not set font to %s\n", font_family);
         exit(1);
     }
 
@@ -32,7 +32,7 @@ App app_init(size_t width, size_t height, const char *font_name,
                 .width = width,
                 .height = height,
             },
-        .font_name = font_name,
+        .font_family = font_family,
         .text_size = text_size,
         .background = background,
         .foreground = foreground,

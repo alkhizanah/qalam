@@ -8,6 +8,7 @@
 #include <X11/Xutil.h>
 
 #include "app.h"
+#include "platform.h"
 
 int platform_main_loop(void) {
     Display *display = XOpenDisplay(NULL);
@@ -47,14 +48,33 @@ int platform_main_loop(void) {
 
     XGetWindowAttributes(display, window, &wa);
 
-    App app = app_init(wa.width, wa.height, "monospace", 24,
-                       (Color){0x1a, 0x1b, 0x26}, (Color){0xa9, 0xb1, 0xd6});
+    App app = {.background = (Color){0x1a, 0x1b, 0x26},
+               .foreground = (Color){0xa9, 0xb1, 0xd6},
+               .font_size = 24};
 
-    uint32_t *backbuffer = malloc(app.framebuffer.width * app.framebuffer.height * sizeof(uint32_t));
+    const char *font_family = "monospace";
+
+    if (!platform_set_font(font_family)) {
+        fprintf(stderr, "error: could not set font to %s\n", font_family);
+
+        return 1;
+    }
+
+    if (!platform_set_font_size(app.font_size)) {
+        fprintf(stderr, "error: could not set font size to %zu\n",
+                app.font_size);
+        return 1;
+    }
+
+    app_resize(&app, wa.width, wa.height);
+
+    uint32_t *backbuffer = malloc(app.framebuffer.width *
+                                  app.framebuffer.height * sizeof(uint32_t));
 
     XImage *image = XCreateImage(display, wa.visual, wa.depth, ZPixmap, 0,
-                                 (char *)backbuffer, app.framebuffer.width, app.framebuffer.height,
-                                 sizeof(Color) * 8, app.framebuffer.width * sizeof(Color));
+                                 (char *)backbuffer, app.framebuffer.width,
+                                 app.framebuffer.height, sizeof(Color) * 8,
+                                 app.framebuffer.width * sizeof(Color));
 
     GC gc = XCreateGC(display, window, 0, NULL);
 
@@ -84,15 +104,18 @@ int platform_main_loop(void) {
                     app_resize(&app, event.xconfigure.width,
                                event.xconfigure.height);
 
-                    backbuffer = realloc(backbuffer, app.framebuffer.width * app.framebuffer.height *
-                                                         sizeof(uint32_t));
+                    backbuffer =
+                        realloc(backbuffer, app.framebuffer.width *
+                                                app.framebuffer.height *
+                                                sizeof(uint32_t));
 
                     XFree(image);
 
-                    image = XCreateImage(display, wa.visual, wa.depth, ZPixmap,
-                                         0, (char *)backbuffer, app.framebuffer.width,
-                                         app.framebuffer.height, sizeof(Color) * 8,
-                                         app.framebuffer.width * sizeof(Color));
+                    image =
+                        XCreateImage(display, wa.visual, wa.depth, ZPixmap, 0,
+                                     (char *)backbuffer, app.framebuffer.width,
+                                     app.framebuffer.height, sizeof(Color) * 8,
+                                     app.framebuffer.width * sizeof(Color));
                 }
 
                 break;
@@ -101,7 +124,8 @@ int platform_main_loop(void) {
 
         app_update(&app);
 
-        for (size_t i = 0; i < app.framebuffer.width * app.framebuffer.height; i++) {
+        for (size_t i = 0; i < app.framebuffer.width * app.framebuffer.height;
+             i++) {
             const Color color = app.framebuffer.pixels[i];
 
             backbuffer[i] = color.r << 16 | color.g << 8 | color.b;

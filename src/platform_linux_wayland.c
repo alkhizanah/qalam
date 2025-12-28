@@ -13,6 +13,7 @@
 #include "wayland-protocols/xdg-shell-client-protocol.h"
 
 #include "app.h"
+#include "platform.h"
 
 static App app;
 
@@ -116,7 +117,8 @@ static struct wl_buffer *platform_copy_frame(void) {
     struct wl_shm_pool *pool = wl_shm_create_pool(wl_shm, fd, size);
 
     struct wl_buffer *buffer = wl_shm_pool_create_buffer(
-        pool, 0, app.framebuffer.width, app.framebuffer.height, stride, WL_SHM_FORMAT_XRGB8888);
+        pool, 0, app.framebuffer.width, app.framebuffer.height, stride,
+        WL_SHM_FORMAT_XRGB8888);
 
     wl_shm_pool_destroy(pool);
 
@@ -124,9 +126,9 @@ static struct wl_buffer *platform_copy_frame(void) {
 
     app_update(&app);
 
-    for (size_t i = 0; i < app.framebuffer.width * app.framebuffer.height; i++) {
+    for (size_t i = 0; i < app.framebuffer.width * app.framebuffer.height;
+         i++) {
         const Color color = app.framebuffer.pixels[i];
-
 
         backbuffer[i] = color.r << 16 | color.g << 8 | color.b;
     }
@@ -271,8 +273,24 @@ int platform_main_loop(void) {
 
     wl_callback_add_listener(cb, &wl_surface_frame_listener, NULL);
 
-    app = app_init(0, 0, "monospace", 24, (Color){0x1a, 0x1b, 0x26},
-             (Color){0xa9, 0xb1, 0xd6});
+    app.background = (Color){0x1a, 0x1b, 0x26};
+    app.foreground = (Color){0xa9, 0xb1, 0xd6};
+    app.font_size = 24;
+
+    const char *font_family = "monospace";
+
+    if (!platform_set_font(font_family)) {
+        fprintf(stderr, "error: could not set font to %s\n", font_family);
+
+        return 1;
+    }
+
+    if (!platform_set_font_size(app.font_size)) {
+        fprintf(stderr, "error: could not set font size to %zu\n",
+                app.font_size);
+
+        return 1;
+    }
 
     while (wl_display_dispatch(wl_display) && window_should_close != true)
         ;

@@ -90,7 +90,7 @@ bool platform_draw_text(ImageView image, const char *text, Color fg, size_t x,
 
                 if ((0 < fx && fx < image.width) &&
                     (0 < fy && fy < image.height)) {
-                    Color *bg = image.pixels + fx + fy * image.width;
+                    Color *bg = image.pixels + fx + fy * image.stride;
 
                     Color blend = {
                         .r = (fg.r * alpha + bg->r * (255 - alpha)) / 255,

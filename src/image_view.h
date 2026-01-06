@@ -16,3 +16,5 @@ typedef struct {
     size_t height;
     size_t stride;
 } ImageView;
+
+ImageView subimage_of(ImageView, size_t x, size_t y, size_t width, size_t height);

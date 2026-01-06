@@ -25,12 +25,9 @@ void app_update(App *app) {
 
     size_t gap = 20;
 
-    ImageView image = {
-        .pixels = app->framebuffer.pixels + gap * (app->framebuffer.width + 1),
-        .width = app->framebuffer.width - gap * 2,
-        .height = app->framebuffer.height - gap * 2,
-        .stride = app->framebuffer.width,
-    };
+    ImageView image = subimage_of(app->framebuffer, gap, gap,
+                                  app->framebuffer.width - gap * 2,
+                                  app->framebuffer.height - gap * 2);
 
     gfx_clear(image, (Color){.r = 60, .g = 70, .b = 80});
 }

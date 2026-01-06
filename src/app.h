@@ -9,6 +9,7 @@
 typedef struct {
     ImageView framebuffer;
     Theme theme;
+    size_t font_size;
 } App;
 
 void app_resize(App *, size_t new_width, size_t new_height);

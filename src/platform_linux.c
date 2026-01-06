@@ -88,8 +88,7 @@ bool platform_draw_text(ImageView image, const char *text, Color fg, size_t x,
                 size_t fx = x + gx + glyph->bitmap_left;
                 size_t fy = y + gy - glyph->bitmap_top;
 
-                if ((0 < fx && fx < image.width) &&
-                    (0 < fy && fy < image.height)) {
+                if (fx < image.width && fy < image.height) {
                     Color *bg = image.pixels + fx + fy * image.stride;
 
                     Color blend = {

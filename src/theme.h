@@ -6,7 +6,10 @@
 #include "image_view.h"
 
 typedef struct {
-    Color background;
-    Color foreground;
-    size_t font_size;
+    Color editor_background;
+    Color editor_foreground;
+    Color statusline_background;
+    Color statusline_foreground;
 } Theme;
+
+Theme kanagawa_wave(void);

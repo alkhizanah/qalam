@@ -86,7 +86,7 @@ int main(int argc, char **argv) {
         nob_write_entire_file(".ccls", sb.items, sb.count);
     } else {
         nob_cc_output(&compile, "qalam");
-        nob_cc_inputs(&compile, "src/app.c", "src/gfx.c", "src/platform.c", "src/image_view.c");
+        nob_cc_inputs(&compile, "src/app.c", "src/gfx.c", "src/platform.c", "src/image_view.c", "src/theme.c");
 
         if (wayland) {
             nob_cc_inputs(&compile,

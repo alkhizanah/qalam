@@ -21,7 +21,7 @@ void app_resize(App *app, size_t new_width, size_t new_height) {
 
 void app_update(App *app) {
     gfx_draw_rectangle(app->framebuffer, 0, 0, app->framebuffer.width,
-                       app->framebuffer.height, app->background);
+                       app->framebuffer.height, app->theme.background);
 
     const char *text = "Hello, World!";
 
@@ -29,7 +29,7 @@ void app_update(App *app) {
 
     platform_measure_text(text, &text_width, &text_height);
 
-    platform_draw_text(app->framebuffer, text, app->foreground,
+    platform_draw_text(app->framebuffer, text, app->theme.foreground,
                        app->framebuffer.width / 2 - text_width / 2,
                        app->framebuffer.height / 2);
 }

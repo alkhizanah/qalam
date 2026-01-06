@@ -48,9 +48,9 @@ int platform_main_loop(void) {
 
     XGetWindowAttributes(display, window, &wa);
 
-    App app = {.background = (Color){0x1a, 0x1b, 0x26},
-               .foreground = (Color){0xa9, 0xb1, 0xd6},
-               .font_size = 24};
+    App app = {.theme = {.background = (Color){0x1a, 0x1b, 0x26},
+                         .foreground = (Color){0xa9, 0xb1, 0xd6},
+                         .font_size = 24}};
 
     const char *font_family = "monospace";
 
@@ -60,9 +60,9 @@ int platform_main_loop(void) {
         return 1;
     }
 
-    if (!platform_set_font_size(app.font_size)) {
+    if (!platform_set_font_size(app.theme.font_size)) {
         fprintf(stderr, "error: could not set font size to %zu\n",
-                app.font_size);
+                app.theme.font_size);
         return 1;
     }
 

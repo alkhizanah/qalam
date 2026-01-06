@@ -14,4 +14,5 @@ typedef struct {
     Color *pixels;
     size_t width;
     size_t height;
+    size_t stride;
 } ImageView;

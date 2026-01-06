@@ -17,19 +17,20 @@ void app_resize(App *app, size_t new_width, size_t new_height) {
 
     app->framebuffer.width = new_width;
     app->framebuffer.height = new_height;
+    app->framebuffer.stride = new_width;
 }
 
 void app_update(App *app) {
-    gfx_draw_rectangle(app->framebuffer, 0, 0, app->framebuffer.width,
-                       app->framebuffer.height, app->theme.background);
+    gfx_clear(app->framebuffer, app->theme.background);
 
-    const char *text = "Hello, World!";
+    size_t gap = 20;
 
-    size_t text_width, text_height;
+    ImageView image = {
+        .pixels = app->framebuffer.pixels + gap * (app->framebuffer.width + 1),
+        .width = app->framebuffer.width - gap * 2,
+        .height = app->framebuffer.height - gap * 2,
+        .stride = app->framebuffer.width,
+    };
 
-    platform_measure_text(text, &text_width, &text_height);
-
-    platform_draw_text(app->framebuffer, text, app->theme.foreground,
-                       app->framebuffer.width / 2 - text_width / 2,
-                       app->framebuffer.height / 2);
+    gfx_clear(image, (Color){.r = 60, .g = 70, .b = 80});
 }

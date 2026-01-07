@@ -48,7 +48,29 @@ int platform_main_loop(void) {
 
     XGetWindowAttributes(display, window, &wa);
 
-    App app = {.theme = kanagawa_wave(), .font_size = 24};
+    App app = {0};
+
+    app.theme = kanagawa_wave();
+
+    app.font_size = 20;
+
+    app.line_spacing = 5;
+
+    app.file_path = "some_file.c";
+
+    app.file_content = "#include <stdio.h>\n"
+                       "\n"
+                       "int add(int a, int b) {\n"
+                       "    return a + b;\n"
+                       "}\n"
+                       "\n"
+                       "int main(void) {\n"
+                       "    int x = 2;\n"
+                       "    int y = 3;\n"
+                       "\n"
+                       "    printf(\"sum = %d\\n\", add(x, y));\n"
+                       "    return 0;\n"
+                       "}\n";
 
     const char *font_family = "monospace";
 

@@ -274,7 +274,26 @@ int platform_main_loop(void) {
     wl_callback_add_listener(cb, &wl_surface_frame_listener, NULL);
 
     app.theme = kanagawa_wave();
-    app.font_size = 24;
+
+    app.font_size = 15;
+
+    app.line_spacing = 5;
+
+    app.file_path = "some_file.c";
+
+    app.file_content = "#include <stdio.h>\n"
+                       "\n"
+                       "int add(int a, int b) {\n"
+                       "    return a + b;\n"
+                       "}\n"
+                       "\n"
+                       "int main(void) {\n"
+                       "    int x = 2;\n"
+                       "    int y = 3;\n"
+                       "\n"
+                       "    printf(\"sum = %d\\n\", add(x, y));\n"
+                       "    return 0;\n"
+                       "}\n";
 
     const char *font_family = "monospace";
 

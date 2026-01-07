@@ -1,3 +1,4 @@
+#include <assert.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <malloc.h>
@@ -9,11 +10,15 @@
 #include <unistd.h>
 
 #include <wayland-client.h>
+#include <xkbcommon/xkbcommon.h>
 
 #include "wayland-protocols/xdg-shell-client-protocol.h"
 
 #include "app.h"
 #include "platform.h"
+
+unsigned int platform_horizontal_resolution = 96;
+unsigned int platform_vertical_resolution = 96;
 
 static App app;
 
@@ -24,9 +29,14 @@ static struct wl_registry *wl_registry;
 static struct wl_surface *wl_surface;
 static struct wl_shm *wl_shm;
 static struct wl_compositor *wl_compositor;
+static struct wl_seat *wl_seat;
+static struct wl_keyboard *wl_keyboard;
 static struct xdg_wm_base *xdg_wm_base;
 static struct xdg_surface *xdg_surface;
 static struct xdg_toplevel *xdg_toplevel;
+static struct xkb_context *xkb_context;
+static struct xkb_keymap *xkb_keymap;
+static struct xkb_state *xkb_state;
 
 static void randname(char *buf) {
     struct timespec ts;
@@ -216,6 +226,117 @@ static const struct xdg_wm_base_listener xdg_wm_base_listener = {
     .ping = xdg_wm_base_ping,
 };
 
+static void wl_keyboard_keymap(void *data, struct wl_keyboard *wl_keyboard,
+                               uint32_t format, int32_t fd, uint32_t size) {
+    (void)data;
+    (void)wl_keyboard;
+
+    assert(format == WL_KEYBOARD_KEYMAP_FORMAT_XKB_V1);
+
+    char *map_shm = mmap(NULL, size, PROT_READ, MAP_SHARED, fd, 0);
+
+    assert(map_shm != MAP_FAILED);
+
+    xkb_keymap_unref(xkb_keymap);
+    xkb_state_unref(xkb_state);
+
+    xkb_keymap = xkb_keymap_new_from_string(xkb_context, map_shm,
+                                            XKB_KEYMAP_FORMAT_TEXT_V1,
+                                            XKB_KEYMAP_COMPILE_NO_FLAGS);
+
+    munmap(map_shm, size);
+
+    close(fd);
+
+    xkb_state = xkb_state_new(xkb_keymap);
+}
+
+static void wl_keyboard_enter(void *data, struct wl_keyboard *wl_keyboard,
+                              uint32_t serial, struct wl_surface *surface,
+                              struct wl_array *keys) {
+    (void)data;
+    (void)wl_keyboard;
+    (void)surface;
+    (void)serial;
+    (void)keys;
+}
+
+static void wl_keyboard_leave(void *data, struct wl_keyboard *wl_keyboard,
+                              uint32_t serial, struct wl_surface *surface) {
+    (void)data;
+    (void)wl_keyboard;
+    (void)surface;
+    (void)serial;
+}
+
+static void wl_keyboard_modifiers(void *data, struct wl_keyboard *wl_keyboard,
+                                  uint32_t serial, uint32_t mods_depressed,
+                                  uint32_t mods_latched, uint32_t mods_locked,
+                                  uint32_t group) {
+    (void)data;
+    (void)wl_keyboard;
+    (void)serial;
+
+    xkb_state_update_mask(xkb_state, mods_depressed, mods_latched, mods_locked,
+                          0, 0, group);
+}
+
+static void wl_keyboard_repeat_info(void *data, struct wl_keyboard *wl_keyboard,
+                                    int32_t rate, int32_t delay) {
+    (void)data;
+    (void)wl_keyboard;
+    (void)rate;
+    (void)delay;
+}
+
+static void wl_keyboard_key(void *data, struct wl_keyboard *wl_keyboard,
+                            uint32_t serial, uint32_t time, uint32_t key,
+                            uint32_t state) {
+    (void)data;
+    (void)wl_keyboard;
+    (void)serial;
+    (void)time;
+    (void)key;
+    (void)state;
+}
+
+static const struct wl_keyboard_listener wl_keyboard_listener = {
+    .keymap = wl_keyboard_keymap,
+    .enter = wl_keyboard_enter,
+    .leave = wl_keyboard_leave,
+    .key = wl_keyboard_key,
+    .modifiers = wl_keyboard_modifiers,
+    .repeat_info = wl_keyboard_repeat_info,
+};
+
+static void wl_seat_capabilities(void *data, struct wl_seat *wl_seat,
+                                 uint32_t capabilities) {
+    (void)data;
+    (void)wl_seat;
+
+    bool have_keyboard = capabilities & WL_SEAT_CAPABILITY_KEYBOARD;
+
+    if (have_keyboard && wl_keyboard == NULL) {
+        wl_keyboard = wl_seat_get_keyboard(wl_seat);
+        wl_keyboard_add_listener(wl_keyboard, &wl_keyboard_listener, NULL);
+    } else if (!have_keyboard && wl_keyboard != NULL) {
+        wl_keyboard_release(wl_keyboard);
+        wl_keyboard = NULL;
+    }
+}
+
+static void wl_seat_name(void *data, struct wl_seat *wl_seat,
+                         const char *name) {
+    (void)data;
+    (void)wl_seat;
+    (void)name;
+}
+
+static const struct wl_seat_listener wl_seat_listener = {
+    .capabilities = wl_seat_capabilities,
+    .name = wl_seat_name,
+};
+
 static void registry_global(void *data, struct wl_registry *wl_registry,
                             uint32_t name, const char *interface,
                             uint32_t version) {
@@ -230,7 +351,12 @@ static void registry_global(void *data, struct wl_registry *wl_registry,
     } else if (strcmp(interface, xdg_wm_base_interface.name) == 0) {
         xdg_wm_base =
             wl_registry_bind(wl_registry, name, &xdg_wm_base_interface, 1);
+
         xdg_wm_base_add_listener(xdg_wm_base, &xdg_wm_base_listener, NULL);
+    } else if (strcmp(interface, wl_seat_interface.name) == 0) {
+        wl_seat = wl_registry_bind(wl_registry, name, &wl_seat_interface, 5);
+
+        wl_seat_add_listener(wl_seat, &wl_seat_listener, NULL);
     }
 }
 
@@ -250,6 +376,8 @@ int platform_main_loop(void) {
     wl_display = wl_display_connect(NULL);
 
     wl_registry = wl_display_get_registry(wl_display);
+
+    xkb_context = xkb_context_new(XKB_CONTEXT_NO_FLAGS);
 
     wl_registry_add_listener(wl_registry, &wl_registry_listener, NULL);
 
@@ -275,10 +403,6 @@ int platform_main_loop(void) {
 
     app.theme = kanagawa_wave();
 
-    app.font_size = 15;
-
-    app.line_spacing = 5;
-
     app.file_path = "some_file.c";
 
     app.file_content = "#include <stdio.h>\n"
@@ -295,7 +419,7 @@ int platform_main_loop(void) {
                        "    return 0;\n"
                        "}\n";
 
-    const char *font_family = "monospace";
+    const char *font_family = "JetBrains Mono NerdFont";
 
     if (!platform_set_font(font_family)) {
         fprintf(stderr, "error: could not set font to %s\n", font_family);
@@ -303,9 +427,8 @@ int platform_main_loop(void) {
         return 1;
     }
 
-    if (!platform_set_font_size(app.font_size)) {
-        fprintf(stderr, "error: could not set font size to %zu\n",
-                app.font_size);
+    if (!platform_set_font_size(11)) {
+        fprintf(stderr, "error: could not set font size\n");
 
         return 1;
     }

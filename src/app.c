@@ -30,28 +30,27 @@ void app_draw_editor(App *app) {
     gfx_clear(editor_image, app->theme.editor_background);
 
     if (app->file_content != NULL) {
-        const char *b = app->file_content;
+        const char *iterator = app->file_content;
 
         size_t line = 1;
-        size_t column = 0;
 
-        while (*b != '\0') {
-            const char c = *b++;
+        while (*iterator != '\0') {
+            const char *line_content = iterator;
+            size_t line_len = 0;
 
-            if (c == '\n') {
+            while (*iterator != '\n' && *iterator != '\0') {
+                line_len++;
+                iterator++;
+            }
+
+            platform_draw_text(
+                editor_image, line_content, line_len,
+                app->theme.editor_foreground, 0,
+                line * (platform_maximum_text_height() + app->line_spacing));
+
+            if (*iterator == '\n') {
                 line++;
-                column = 0;
-            } else {
-                const char t[] = {c, 0};
-
-                size_t tw, th;
-
-                platform_measure_text(t, &tw, &th);
-
-                platform_draw_text(editor_image, t,
-                                   app->theme.editor_foreground, column * tw,
-                                   line * (app->font_size + app->line_spacing));
-                column++;
+                iterator++;
             }
         }
     }
@@ -65,16 +64,19 @@ void app_draw_statusline(App *app) {
     gfx_clear(statusline_image, app->theme.statusline_background);
 
     if (app->file_path == NULL) {
-        platform_draw_text(statusline_image, "[No Name]",
-                           app->theme.statusline_foreground, 0, app->font_size);
+        platform_draw_text(statusline_image, "[No Name]", 9,
+                           app->theme.statusline_foreground, 0,
+                           platform_maximum_text_height());
     } else {
         platform_draw_text(statusline_image, app->file_path,
-                           app->theme.statusline_foreground, 0, app->font_size);
+                           strlen(app->file_path),
+                           app->theme.statusline_foreground, 0,
+                           platform_maximum_text_height());
     }
 }
 
 void app_update(App *app) {
-    statusline_height = app->font_size + 5;
+    statusline_height = platform_maximum_text_height() + 5;
     app_draw_editor(app);
     app_draw_statusline(app);
 }

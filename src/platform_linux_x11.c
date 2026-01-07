@@ -3,12 +3,16 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <string.h>
 
 #include <X11/Xlib.h>
-#include <X11/Xutil.h>
+#include <X11/extensions/XInput.h>
 
 #include "app.h"
 #include "platform.h"
+
+unsigned int platform_horizontal_resolution;
+unsigned int platform_vertical_resolution;
 
 int platform_main_loop(void) {
     Display *display = XOpenDisplay(NULL);
@@ -28,6 +32,16 @@ int platform_main_loop(void) {
 
         return 1;
     }
+
+    int screen = DefaultScreen(display);
+
+    platform_horizontal_resolution =
+        (((double)DisplayWidth(display, screen)) * 25.4) /
+        ((double)DisplayWidthMM(display, screen));
+
+    platform_vertical_resolution =
+        (((double)DisplayHeight(display, screen)) * 25.4) /
+        ((double)DisplayHeightMM(display, screen));
 
     Window window =
         XCreateSimpleWindow(display, root, 0, 0, 800, 600, 0, 0, 0xffffffff);
@@ -51,10 +65,6 @@ int platform_main_loop(void) {
     App app = {0};
 
     app.theme = kanagawa_wave();
-
-    app.font_size = 20;
-
-    app.line_spacing = 5;
 
     app.file_path = "some_file.c";
 
@@ -80,9 +90,8 @@ int platform_main_loop(void) {
         return 1;
     }
 
-    if (!platform_set_font_size(app.font_size)) {
-        fprintf(stderr, "error: could not set font size to %zu\n",
-                app.font_size);
+    if (!platform_set_font_size(14)) {
+        fprintf(stderr, "error: could not set font size\n");
         return 1;
     }
 

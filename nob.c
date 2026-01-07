@@ -61,10 +61,10 @@ int main(int argc, char **argv) {
     nob_cmd_append(&pkg_config, "freetype2", "fontconfig");
 
     if (wayland) {
-        nob_cmd_append(&pkg_config, "wayland-client");
+        nob_cmd_append(&pkg_config, "wayland-client", "xkbcommon");
         nob_cmd_append(&compile, "-DPLATFORM_WAYLAND");
     } else {
-        nob_cmd_append(&pkg_config, "x11");
+        nob_cmd_append(&pkg_config, "x11", "xi");
         nob_cmd_append(&compile, "-DPLATFORM_X11");
     }
 

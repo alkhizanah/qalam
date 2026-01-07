@@ -68,13 +68,15 @@ bool platform_set_font(const char *font_family) {
 }
 
 bool platform_set_font_size(size_t font_size) {
-    return FT_Set_Pixel_Sizes(font_face, 0, font_size) == 0;
+    return FT_Set_Char_Size(font_face, 0, font_size << 6,
+                            platform_horizontal_resolution,
+                            platform_vertical_resolution) == 0;
 }
 
-bool platform_draw_text(ImageView image, const char *text, Color fg, size_t x,
-                        size_t y) {
-    while (*text != '\0') {
-        if (FT_Load_Char(font_face, *text++, FT_LOAD_RENDER) != 0) {
+bool platform_draw_text(ImageView image, const char *text, size_t len, Color fg,
+                        size_t x, size_t y) {
+    for (size_t i = 0; i < len; i++) {
+        if (FT_Load_Char(font_face, text[i], FT_LOAD_RENDER) != 0) {
             return false;
         }
 
@@ -108,12 +110,13 @@ bool platform_draw_text(ImageView image, const char *text, Color fg, size_t x,
     return true;
 }
 
-bool platform_measure_text(const char *text, size_t *width, size_t *height) {
+bool platform_measure_text(const char *text, size_t len, size_t *width,
+                           size_t *height) {
     *width = 0;
     *height = 0;
 
-    while (*text != '\0') {
-        if (FT_Load_Char(font_face, *text++, FT_LOAD_NO_BITMAP) != 0) {
+    for (size_t i = 0; i < len; i++) {
+        if (FT_Load_Char(font_face, text[i], FT_LOAD_NO_BITMAP) != 0) {
             return false;
         }
 
@@ -128,6 +131,8 @@ bool platform_measure_text(const char *text, size_t *width, size_t *height) {
 
     return true;
 }
+
+size_t platform_maximum_text_height(void) { return font_face->bbox.yMax >> 6; }
 
 int main() {
     if (FT_Init_FreeType(&freetype) != 0) {

@@ -3,7 +3,9 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "image_view.h"
+typedef struct {
+    uint8_t r, g, b, a;
+} Color;
 
 typedef struct {
     Color editor_background;

@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <signal.h>
 #include <sys/ioctl.h>
 #include <termios.h>
 #include <unistd.h>
@@ -111,6 +112,14 @@ bool get_window_size(int *rows, int *cols) {
     }
 }
 
+void handle_sigwinch(int sig) {
+    (void)sig;
+
+    if (!get_window_size(&screen_rows, &screen_cols)) {
+        panic("couldn't get window size");
+    }
+}
+
 void process_keys(void) {
     switch (read_key()) {
     case CTRL('q'):
@@ -128,6 +137,8 @@ int main(void) {
     if (!get_window_size(&screen_rows, &screen_cols)) {
         panic("couldn't get window size");
     }
+
+    signal(SIGWINCH, handle_sigwinch);
 
     for (;;) {
         refresh_screen();

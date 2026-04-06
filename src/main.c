@@ -62,17 +62,65 @@ void draw_frame(void) {
     flush();
 }
 
-void process_keys_in_insert_mode(uint8_t c) {
-    switch (c) {
+bool process_keys_common(Key key) {
+    switch (key) {
+    case ARROW_DOWN:
+        move_cursor(0, +1);
+        return true;
+
+    case ARROW_UP:
+        move_cursor(0, -1);
+        return true;
+
+    case ARROW_LEFT:
+        move_cursor(-1, 0);
+        return true;
+
+    case ARROW_RIGHT:
+        move_cursor(+1, 0);
+        return true;
+
+    case PAGE_UP:
+    case PAGE_DOWN:
+        for (int i = q.screen_rows; i > 0; i--) {
+            move_cursor(0, PAGE_UP ? -1 : +1);
+        }
+
+        return true;
+
+    case HOME:
+        q.cursor_x = 0;
+        return true;
+
+    case END:
+        q.cursor_x = q.screen_cols - 1;
+        return true;
+
     case ESC:
     case CTRL('c'):
         q.mode = NORMAL_MODE;
-        break;
+        return true;
     }
+
+    return false;
 }
 
-void process_keys_in_normal_mode(uint8_t c) {
-    switch (c) {
+void process_keys_in_insert_mode(void) {
+    Key key = read_key();
+
+    if (process_keys_common(key))
+        return;
+
+    switch (key) {}
+}
+
+void process_keys_in_normal_mode(void) {
+    Key key = read_key();
+
+    if (process_keys_common(key))
+        return;
+
+    switch (key) {
     case 'j':
         move_cursor(0, +1);
         break;
@@ -98,46 +146,17 @@ void process_keys_in_normal_mode(uint8_t c) {
         flush();
         exit_raw_mode();
         exit(0);
-        break;
     }
 }
 
 void process_keys(void) {
-    uint8_t c = read_key();
-
-    switch (read_arrow(c)) {
-    case ARROW_UP:
-        move_cursor(0, -1);
-        c = read_key();
-        break;
-
-    case ARROW_DOWN:
-        move_cursor(0, +1);
-        c = read_key();
-        break;
-
-    case ARROW_LEFT:
-        move_cursor(-1, 0);
-        c = read_key();
-        break;
-
-    case ARROW_RIGHT:
-        move_cursor(+1, 0);
-        c = read_key();
-        break;
-
-    case NOT_AN_ARROW:
-    default:
-        break;
-    }
-
     switch (q.mode) {
     case NORMAL_MODE:
-        process_keys_in_normal_mode(c);
+        process_keys_in_normal_mode();
         break;
 
     case INSERT_MODE:
-        process_keys_in_insert_mode(c);
+        process_keys_in_insert_mode();
         break;
 
     default:

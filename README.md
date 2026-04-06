@@ -20,7 +20,7 @@ This is the rough description of the project as we thought of it, many changes m
 Since Qalam is a C project that uses [mkc](https://github.com/alkhizanah/mkc) build system, use:
 
 ```
-mkc -j $(nproc)
+mkc
 ```
 
 The built binary will be located at `build/qalam`
@@ -28,5 +28,5 @@ The built binary will be located at `build/qalam`
 And to release it, or to use it outside of development, you may also want to optimize it:
 
 ```
-mkc -j $(nproc) -O 3
+mkc -O 3
 ```

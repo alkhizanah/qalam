@@ -10,25 +10,30 @@
 #include <termios.h>
 #include <unistd.h>
 
-static int screen_rows;
-static int screen_cols;
-static struct termios original_termios;
-
 #define BUFFER_MAX 4096
 
-static uint8_t buffer[BUFFER_MAX];
-static size_t buffer_len;
+typedef struct {
+    struct termios original_termios;
+
+    int screen_rows;
+    int screen_cols;
+
+    uint8_t buffer[BUFFER_MAX];
+    size_t buffer_len;
+} Qalam;
+
+static Qalam q;
 
 void flush(void) {
-    write(STDOUT_FILENO, buffer, buffer_len);
-    buffer_len = 0;
+    write(STDOUT_FILENO, q.buffer, q.buffer_len);
+    q.buffer_len = 0;
 }
 
 void append_with_len(const char *cmd, size_t cmd_len) {
     for (size_t i = 0; i < cmd_len; i++) {
-        buffer[buffer_len++] = cmd[i];
+        q.buffer[q.buffer_len++] = cmd[i];
 
-        if (buffer_len >= BUFFER_MAX) {
+        if (q.buffer_len >= BUFFER_MAX) {
             flush();
         }
     }
@@ -37,9 +42,9 @@ void append_with_len(const char *cmd, size_t cmd_len) {
 void append(const char *cmd) { append_with_len(cmd, strlen(cmd)); }
 
 void enter_raw_mode(void) {
-    tcgetattr(STDIN_FILENO, &original_termios);
+    tcgetattr(STDIN_FILENO, &q.original_termios);
 
-    struct termios raw = original_termios;
+    struct termios raw = q.original_termios;
     raw.c_iflag &= ~(BRKINT | ICRNL | INPCK | ISTRIP | IXON);
     raw.c_oflag &= ~(OPOST);
     raw.c_cflag |= (CS8);
@@ -65,18 +70,18 @@ uint8_t read_key(void) {
 void exit_raw_mode(void) {
     append("\x1b[?1049l");
 
-    tcsetattr(STDIN_FILENO, TCSAFLUSH, &original_termios);
+    tcsetattr(STDIN_FILENO, TCSAFLUSH, &q.original_termios);
 }
 
 void clear_screen(void) { append("\x1b[2J\x1b[H"); }
 
 void draw_editor_rows(void) {
-    for (int y = 0; y < screen_rows; y++) {
+    for (int y = 0; y < q.screen_rows; y++) {
         append("~");
 
         append("\x1b[K");
 
-        if (y < screen_rows - 1) {
+        if (y < q.screen_rows - 1) {
             append("\r\n");
         }
     }
@@ -147,7 +152,7 @@ bool get_window_size(int *rows, int *cols) {
 void handle_sigwinch(int sig) {
     (void)sig;
 
-    if (!get_window_size(&screen_rows, &screen_cols)) {
+    if (!get_window_size(&q.screen_rows, &q.screen_cols)) {
         panic("couldn't get window size");
     }
 }
@@ -166,7 +171,7 @@ void process_keys(void) {
 int main(void) {
     enter_raw_mode();
 
-    if (!get_window_size(&screen_rows, &screen_cols)) {
+    if (!get_window_size(&q.screen_rows, &q.screen_cols)) {
         panic("couldn't get window size");
     }
 

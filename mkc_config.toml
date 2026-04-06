@@ -1,0 +1,16 @@
+[project]
+compiler = "cc"
+target_name = "qalam"
+unity_build = false
+shared = false
+compile_flags = []
+link_flags = []
+
+[paths]
+sources = []
+includes = ["src"]
+exclude_dirs = [".ccls-cache"]
+exclude_exts = []
+
+[pkg]
+deps = []

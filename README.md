@@ -14,3 +14,19 @@ And many things that Neovim requires implementing a plugin for.
 If we got to a point where these features are implemented, we then might add a plugin system using dynamic libraries instead of embedding a programming language into our editor, the idea is to make it so any programming language that can be compiled to a dynamic library be used.
 
 This is the rough description of the project as we thought of it, many changes may be done, but the core idea must be the same: A modal text editor.
+
+## Build from source
+
+Since Qalam is a C project that uses [mkc](https://github.com/alkhizanah/mkc) build system, use:
+
+```
+mkc -j $(nproc)
+```
+
+The built binary will be located at `build/qalam`
+
+And to release it, or to use it outside of development, you may also want to optimize it:
+
+```
+mkc -j $(nproc) -O 3
+```

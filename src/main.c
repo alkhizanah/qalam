@@ -99,12 +99,44 @@ void panic(const char *reason) {
     exit(1);
 }
 
+bool get_cursor_position(int *rows, int *cols) {
+    char buf[32];
+
+    unsigned int i = 0;
+
+    if (write(STDOUT_FILENO, "\x1b[6n", 4) != 4)
+        return false;
+
+    while (i < sizeof(buf) - 1) {
+        if (read(STDIN_FILENO, &buf[i], 1) != 1)
+            break;
+
+        if (buf[i] == 'R')
+            break;
+
+        i++;
+    }
+
+    buf[i] = '\0';
+
+    if (buf[0] != '\x1b' || buf[1] != '[')
+        return false;
+
+    if (sscanf(&buf[2], "%d;%d", rows, cols) != 2)
+        return false;
+
+    return true;
+}
+
 bool get_window_size(int *rows, int *cols) {
     struct winsize winsize;
 
     if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &winsize) == -1 ||
         winsize.ws_col == 0) {
-        return false;
+        if (write(STDOUT_FILENO, "\x1b[999C\x1b[999B", 12) != 12)
+            return false;
+
+        return get_cursor_position(rows, cols);
     } else {
         *rows = winsize.ws_row;
         *cols = winsize.ws_col;
